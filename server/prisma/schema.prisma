@@ -1,0 +1,99 @@
+// Prisma schema for GymOn Backend
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [postgis]
+}
+
+enum UserLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum SessionStatus {
+  OPEN
+  FULL
+  CANCELLED
+  DONE
+}
+
+enum ParticipationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  firstName    String    @map("first_name")
+  level        UserLevel @default(BEGINNER)
+  sports       String[]  @default([])
+  bio          String?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  hostedSessions Session[]       @relation("HostSessions")
+  participations Participation[]
+
+  @@map("users")
+}
+
+model Gym {
+  id        String                                 @id @default(uuid()) @db.Uuid
+  name      String
+  address   String
+  city      String
+  latitude  Float
+  longitude Float
+  location  Unsupported("geography(Point, 4326)")?
+  createdAt DateTime                               @default(now()) @map("created_at")
+  updatedAt DateTime                               @updatedAt @map("updated_at")
+
+  sessions Session[]
+
+  @@map("gyms")
+}
+
+model Session {
+  id              String        @id @default(uuid()) @db.Uuid
+  hostId          String        @map("host_id") @db.Uuid
+  gymId           String        @map("gym_id") @db.Uuid
+  startAt         DateTime      @map("start_at")
+  durationMinutes Int           @map("duration_minutes")
+  activityType    String        @map("activity_type")
+  level           UserLevel
+  capacity        Int
+  status          SessionStatus @default(OPEN)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  host           User            @relation("HostSessions", fields: [hostId], references: [id], onDelete: Cascade)
+  gym            Gym             @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  participations Participation[]
+
+  @@map("sessions")
+}
+
+model Participation {
+  id        String              @id @default(uuid()) @db.Uuid
+  sessionId String              @map("session_id") @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  status    ParticipationStatus @default(PENDING)
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("participations")
+}
