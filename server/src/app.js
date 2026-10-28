@@ -1,4 +1,5 @@
-import express from 'express';
+import express from "express";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -6,24 +7,27 @@ const app = express();
 app.use(express.json());
 
 // Route de diagnostic / santé
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      status: 'ok',
-      timestamp: new Date().toISOString()
-    }
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    },
   });
 });
+
+// Routes API v1
+app.use("/api/v1/auth", authRoutes);
 
 // Gestionnaire 404 pour les routes inconnues
 app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: {
-      code: 'NOT_FOUND',
-      message: `Route not found: ${req.method} ${req.originalUrl}`
-    }
+      code: "NOT_FOUND",
+      message: `Route not found: ${req.method} ${req.originalUrl}`,
+    },
   });
 });
 
@@ -34,9 +38,9 @@ app.use((err, req, res, next) => {
   res.status(status).json({
     success: false,
     error: {
-      code: err.code || 'INTERNAL_SERVER_ERROR',
-      message: err.message || 'An unexpected error occurred'
-    }
+      code: err.code || "INTERNAL_SERVER_ERROR",
+      message: err.message || "An unexpected error occurred",
+    },
   });
 });
 
