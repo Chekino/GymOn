@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { registerUser, loginUser } from "../services/auth.service.js";
+import { registerUser, loginUser, logoutUser } from "../services/auth.service.js";
 
 /**
  * Schema de validation Zod pour l'inscription.
@@ -83,6 +83,25 @@ export async function login(req, res, next) {
       data: {
         token,
         user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Couche Controller pour la deconnexion.
+ */
+export async function logout(req, res, next) {
+  try {
+    // req.token et req.tokenPayload sont injectes par le middleware authenticate
+    await logoutUser(req.token, req.tokenPayload);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        message: "Successfully logged out",
       },
     });
   } catch (error) {

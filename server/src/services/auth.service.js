@@ -3,7 +3,8 @@ import {
   findUserByEmail,
   createUser,
 } from "../repositories/user.repository.js";
-import { generateToken } from "../utils/token.js";
+import { generateToken, hashToken } from "../utils/token.js";
+import { createRevokedToken } from "../repositories/token.repository.js";
 
 const SALT_ROUNDS = 10;
 
@@ -78,4 +79,15 @@ export async function loginUser({ email, password }) {
     token,
     user: safeUser,
   };
+}
+
+export async function logoutUser(token, decoded) {
+  // Calcul de l'empreinte SHA-256 du token
+  const tokenHash = hashToken(token);
+
+  // Date d'expiration extraite du payload JWT (exp en secondes vers millisecondes)
+  const expiresAt = new Date(decoded.exp * 1000);
+
+  // Enregistrement dans la table des tokens revoques
+  await createRevokedToken({ tokenHash, expiresAt });
 }

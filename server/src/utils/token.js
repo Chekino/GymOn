@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
+function getJwtSecret() {
+  return process.env.JWT_SECRET || "default_dev_secret_change_in_production";
+}
+
+function getJwtExpiresIn() {
+  return process.env.JWT_EXPIRES_IN || "7d";
+}
 
 /**
  * Genere un jeton JWT signe avec l'identifiant de l'utilisateur.
@@ -9,8 +15,8 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
  * @returns {string} Le jeton JWT signe
  */
 export function generateToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+  return jwt.sign(payload, getJwtSecret(), {
+    expiresIn: getJwtExpiresIn(),
   });
 }
 
@@ -21,5 +27,15 @@ export function generateToken(payload) {
  * @throws {JsonWebTokenError|TokenExpiredError} Si le jeton est invalide ou expire
  */
 export function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, getJwtSecret());
+}
+
+/**
+ * Calcule l'empreinte cryptographique SHA-256 d'un jeton.
+ * Permet d'indexer et stocker le jeton revoque sans conserver sa valeur brute en base.
+ * @param {string} token - Le jeton JWT brut
+ * @returns {string} Empreinte hexadecimale SHA-256
+ */
+export function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }

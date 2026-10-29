@@ -87,7 +87,3 @@ ALTER TABLE "participations" ADD CONSTRAINT "participations_session_id_fkey" FOR
 -- AddForeignKey
 ALTER TABLE "participations" ADD CONSTRAINT "participations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Custom constraint & spatial index
-ALTER TABLE "sessions" ADD CONSTRAINT "session_capacity_check" CHECK (capacity IN (2, 3));
-CREATE INDEX "gyms_location_idx" ON "gyms" USING GIST ("location");
-

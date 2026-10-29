@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { signup, login } from "../controllers/auth.controller.js";
+import { signup, login, logout } from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 /**
  * Couche Routes pour l'authentification.
@@ -9,5 +10,6 @@ const router = Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/logout", authenticate, logout);
 
 export default router;
