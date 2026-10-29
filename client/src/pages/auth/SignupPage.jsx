@@ -71,9 +71,15 @@ export default function SignupPage() {
 
       navigate("/", { replace: true });
     } catch (error) {
+      const details = error.response?.data?.error?.details
+        ?.map((d) => d.message)
+        .join(". ");
       const message =
+        details ||
         error.response?.data?.error?.message ||
+        error.message ||
         "Impossible de créer votre compte. Veuillez vérifier les informations saisies.";
+
       toast.error("Erreur d'inscription", {
         description: message,
       });
