@@ -28,6 +28,7 @@ L'application consomme exclusivement l'API REST sécurisée développée dans `s
 | **TanStack Query** | v5 (React Query) | Gestion du cache serveur, des requêtes API asynchrones, du rafraîchissement automatique et de la synchronisation de l'état distant. |
 | **Axios** | 1.7+ | Client HTTP avec configuration de l'URL de base (`http://localhost:3000/api/v1`) et intercepteurs automatiques (injection du `Bearer token` et gestion du 401). |
 | **Motion** (`framer-motion`) | 11+ | Moteur d'animations physiques (ressorts Apple, transitions fluides, bottom sheets interruptibles, micro-interactions tactiles). |
+| **Sonner** | Dernière version | Notifications toast ultra-rapides, animées et balayables (conçues par Emil Kowalski). |
 | **Lucide React** | Dernière version | Bibliothèque d'icônes vectorielles légères et cohérentes (haltères, calendrier, carte, utilisateur, etc.). |
 
 ---
@@ -65,16 +66,19 @@ client/
     │   ├── layout/              # Navbar, MobileNav (barre de navigation basse sur mobile), Layout principal
     │   └── sessions/            # SessionCard, SessionFilters, ParticipantList
     │
-    ├── pages/                   # Vues complètes de l'application
-    │   ├── LoginPage.jsx        # Connexion
-    │   ├── SignupPage.jsx       # Inscription
-    │   ├── ExplorePage.jsx      # Découverte et liste filtrable des séances
-    │   ├── SessionDetailPage.jsx# Détail d'une séance + bouton Rejoindre / Gérer
-    │   ├── CreateSessionPage.jsx# Formulaire de création de séance
-    │   ├── MySessionsPage.jsx   # Espace Hôte : séances créées et candidatures reçues
-    │   ├── MyParticipationsPage.jsx # Espace Participant : suivi de ses demandes
-    │   ├── ProfilePage.jsx      # Mon profil (consultation et modification)
-    │   └── NotFoundPage.jsx     # Erreur 404
+    ├── pages/                   # Vues classees par domaine metier
+    │   ├── auth/                # Authentification
+    │   │   ├── LoginPage.jsx    # Connexion
+    │   │   └── SignupPage.jsx   # Inscription
+    │   ├── sessions/            # Gestion et decouverte des seances
+    │   │   ├── ExplorePage.jsx  # Decouverte et liste filtrable des seances
+    │   │   ├── SessionDetailPage.jsx # Fiche complete d'une seance
+    │   │   └── CreateSessionPage.jsx  # Creation d'une nouvelle seance
+    │   ├── user/                # Espace personnel et suivi
+    │   │   ├── ProfilePage.jsx        # Profil sportif personnel
+    │   │   ├── MySessionsPage.jsx     # Seances creees en tant qu'hote
+    │   │   └── MyParticipationsPage.jsx # Suivi de ses candidatures
+    │   └── NotFoundPage.jsx     # Page d'erreur 404
     │
     ├── routes/                  # Configuration du routage
     │   ├── AppRoutes.jsx        # Table de navigation React Router
@@ -208,7 +212,23 @@ Pour que GymOn ne ressemble pas à un simple site web responsive mais offre une 
 | **Bouton sous l'encoche/home bar** | `viewport-fit=cover` + `env(safe-area-inset-bottom)` | Protège la barre de navigation mobile des gestes de balayage du système. |
 | **Sélection de texte involontaire** | `user-select: none;` sur boutons, badges et onglets | Empêche la bulle de sélection de texte lors d'un appui prolongé sur un bouton. |
 
-### 7.2 Principes de Motion & Design d'Interaction (`apple-design` & `emil-design-eng`)
+### 7.2 Direction Artistique Athlétique & Identité Sportive Pro
+
+Pour rompre définitivement avec le cliché des applications IA génériques (fond noir et vert fluo), GymOn adopte une **esthétique épurée, lumineuse et haut de gamme**, inspirée des références du sport et du fitness moderne (Nike Training Club, Strava, Apple Fitness+) :
+
+- **Fond épuré & Surfaces lumineuses** :
+  - Arrière-plan principal : Blanc pur (`bg-white`) et ardoise claire très douce (`bg-slate-50`).
+  - Cartes et panneaux : Blanc pur avec bordures nettes et discrètes (`border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow`).
+- **Couleur d'accent athlétique — Bleu Électrique & Ciel** :
+  - Teinte signature : Bleu athlétique vif (`bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white`) qui évoque l'énergie, la précision et la concentration sportive.
+  - Badges de niveau & statuts : Fonds teintés doux avec bordures coordonnées (ex: `bg-sky-50 text-sky-700 border border-sky-200/60`).
+- **Typographie à haut contraste** :
+  - Textes principaux en gris anthracite profond (`text-slate-900 font-bold tracking-tight`) pour une lisibilité parfaite même en plein soleil ou sous les néons d'une salle de musculation.
+  - Textes secondaires en ardoise douce (`text-slate-600`).
+- **Notifications Sonner (Micro-interactions)** :
+  - Alertes toast fluides et magnétiques en haut d'écran (`<Toaster position="top-center" richColors />`) pour confirmer instantanément les actions (« Candidature envoyée ! », « Séance créée », etc.).
+
+### 7.3 Principes de Motion & Design d'Interaction (`apple-design` & `emil-design-eng`)
 
 1. **Feedback tactile instantané (`:active`)** :
    - Tout élément cliquable réagit immédiatement au `pointerdown` avec une légère compression physique :

@@ -8,6 +8,9 @@ export default {
   },
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', "system-ui", "-apple-system", "sans-serif"],
+      },
       transitionTimingFunction: {
         "out-cubic": "cubic-bezier(0.23, 1, 0.32, 1)",
       },
