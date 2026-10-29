@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+import helmet from "helmet";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import gymRoutes from "./routes/gym.routes.js";
@@ -6,6 +8,17 @@ import sessionRoutes from "./routes/session.routes.js";
 import participationRoutes from "./routes/participation.routes.js";
 
 const app = express();
+
+// Securise les en-tetes HTTP
+app.use(helmet());
+
+// Autorise les requetes cross-origin du client web
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    credentials: true,
+  })
+);
 
 // Parse JSON body payloads
 app.use(express.json());
