@@ -3,6 +3,7 @@ import {
   findUserByEmail,
   createUser,
 } from "../repositories/user.repository.js";
+import { generateToken } from "../utils/token.js";
 
 const SALT_ROUNDS = 10;
 
@@ -20,7 +21,7 @@ export async function registerUser({
   sports,
   bio,
 }) {
-  // Regle metier : un email doit etre unique
+  // L'adresse email doit etre unique
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
     const error = new Error("Email already registered");
@@ -29,7 +30,7 @@ export async function registerUser({
     throw error;
   }
 
-  // Regle de securite : hachage a sens unique du mot de passe avec sel
+  // Hachage a sens unique du mot de passe avec sel
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
   // Persistance via la couche repository
@@ -42,7 +43,39 @@ export async function registerUser({
     bio: bio || null,
   });
 
-  // Regle de vie privee : ne jamais exposer le hash du mot de passe
+  // Ne jamais exposer le hash du mot de passe dans les reponses
   const { passwordHash: _, ...safeUser } = createdUser;
   return safeUser;
+}
+
+export async function loginUser({ email, password }) {
+  // Recherche de l'utilisateur par son email
+  const user = await findUserByEmail(email);
+  if (!user) {
+    // Protection anti-enumeration OWASP avec reponse generique
+    const error = new Error("Invalid email or password");
+    error.statusCode = 401;
+    error.code = "INVALID_CREDENTIALS";
+    throw error;
+  }
+
+  // Verification securisee du mot de passe avec le hash stocke
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isPasswordValid) {
+    const error = new Error("Invalid email or password");
+    error.statusCode = 401;
+    error.code = "INVALID_CREDENTIALS";
+    throw error;
+  }
+
+  // Generation du jeton JWT signe avec l'identifiant utilisateur
+  const token = generateToken({ userId: user.id });
+
+  // Retrait du hash du mot de passe pour la reponse
+  const { passwordHash: _, ...safeUser } = user;
+
+  return {
+    token,
+    user: safeUser,
+  };
 }

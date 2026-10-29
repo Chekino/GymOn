@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { registerUser } from "../services/auth.service.js";
+import { registerUser, loginUser } from "../services/auth.service.js";
 
 /**
  * Schema de validation Zod pour l'inscription.
@@ -12,6 +12,14 @@ const signupSchema = z.object({
   level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
   sports: z.array(z.string().trim()).optional(),
   bio: z.string().trim().max(500).optional(),
+});
+
+/**
+ * Schema de validation Zod pour la connexion.
+ */
+const loginSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email({ error: "Invalid email address" })),
+  password: z.string().min(1, "Password is required"),
 });
 
 /**
@@ -41,6 +49,41 @@ export async function signup(req, res, next) {
     return res.status(201).json({
       success: true,
       data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Couche Controller pour la connexion.
+ */
+export async function login(req, res, next) {
+  try {
+    const result = loginSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid input data",
+          details: result.error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
+        },
+      });
+    }
+
+    const { token, user } = await loginUser(result.data);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        token,
+        user,
+      },
     });
   } catch (error) {
     next(error);
