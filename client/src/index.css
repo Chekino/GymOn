@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    overscroll-behavior-y: none;
+    min-height: 100dvh;
+  }
+
+  /* Empeche le zoom intempestif d'iOS Safari au focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
