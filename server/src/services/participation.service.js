@@ -1,15 +1,18 @@
 import {
   createParticipation,
+  findParticipationById,
   findParticipationBySessionAndUser,
   findParticipationsBySessionId,
   findParticipationsByUserId,
   updateParticipationStatus,
+  acceptParticipationInTransaction,
+  cancelParticipationInTransaction,
 } from "../repositories/participation.repository.js";
 import { findSessionById } from "../repositories/session.repository.js";
 
 /**
  * Couche Service pour les participations.
- * Contient les regles metier (verification hote, unicite, disponibilite de la seance).
+ * Contient les regles metier (verification hote, unicite, disponibilite de la seance, concurrence).
  */
 
 export async function requestToJoinSession({ sessionId, userId }) {
@@ -105,4 +108,94 @@ export async function listSessionParticipations({ sessionId, userId }) {
 
 export async function getUserParticipations(userId) {
   return findParticipationsByUserId(userId);
+}
+
+export async function updateParticipationStatusByParty({
+  participationId,
+  userId,
+  newStatus,
+}) {
+  const participation = await findParticipationById(participationId);
+
+  if (!participation) {
+    const error = new Error("Participation not found");
+    error.statusCode = 404;
+    error.code = "PARTICIPATION_NOT_FOUND";
+    throw error;
+  }
+
+  // Interdiction de modifier une participation sur une seance annulee
+  if (participation.session.status === "CANCELLED") {
+    const error = new Error("Session is cancelled");
+    error.statusCode = 400;
+    error.code = "SESSION_CANCELLED";
+    throw error;
+  }
+
+  // Interdiction de modifier une participation sur une seance passee
+  if (new Date(participation.session.startAt) <= new Date()) {
+    const error = new Error("Cannot modify participation for a past session");
+    error.statusCode = 400;
+    error.code = "SESSION_ALREADY_STARTED";
+    throw error;
+  }
+
+  const isHost = participation.session.hostId === userId;
+  const isParticipant = participation.userId === userId;
+
+  if (isHost) {
+    if (!["ACCEPTED", "DECLINED"].includes(newStatus)) {
+      const error = new Error("Host can only accept or decline participation requests");
+      error.statusCode = 403;
+      error.code = "FORBIDDEN";
+      throw error;
+    }
+
+    if (participation.status !== "PENDING") {
+      const error = new Error("Only pending participations can be accepted or declined");
+      error.statusCode = 400;
+      error.code = "INVALID_STATUS_TRANSITION";
+      throw error;
+    }
+
+    if (newStatus === "ACCEPTED") {
+      // Capacite maximale de participants = capacite totale moins 1 (l'hote)
+      const maxParticipants = participation.session.capacity - 1;
+
+      return acceptParticipationInTransaction({
+        participationId,
+        sessionId: participation.sessionId,
+        maxParticipants,
+      });
+    }
+
+    return updateParticipationStatus(participationId, "DECLINED");
+  }
+
+  if (isParticipant) {
+    if (newStatus !== "CANCELLED") {
+      const error = new Error("Participant can only cancel their own participation");
+      error.statusCode = 403;
+      error.code = "FORBIDDEN";
+      throw error;
+    }
+
+    if (!["PENDING", "ACCEPTED"].includes(participation.status)) {
+      const error = new Error("Participation is already finalized and cannot be cancelled");
+      error.statusCode = 400;
+      error.code = "INVALID_STATUS_TRANSITION";
+      throw error;
+    }
+
+    return cancelParticipationInTransaction({
+      participationId,
+      sessionId: participation.sessionId,
+      wasAccepted: participation.status === "ACCEPTED",
+    });
+  }
+
+  const error = new Error("You are not authorized to update this participation");
+  error.statusCode = 403;
+  error.code = "FORBIDDEN";
+  throw error;
 }

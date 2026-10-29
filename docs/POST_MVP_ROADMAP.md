@@ -20,8 +20,14 @@ Ce document centralise l'ensemble des tâches, optimisations et fonctionnalités
 
 ## 2. Fonctionnalités applicatives (Hors MVP)
 
+- **Notifications par email (Post-Frontend)** :
+  - *Décision* : Les notifications seront gérées par l'envoi d'emails transactionnels (ex: Nodemailer / Resend / Brevo).
+  - *Planning* : À implémenter une fois le frontend React terminé.
+  - *Cas d'usage* :
+    - Email à l'hôte lors d'une nouvelle demande de participation reçue.
+    - Email au demandeur lorsque son statut passe à `ACCEPTED` ou `DECLINED`.
+    - Email aux participants acceptés en cas d'annulation ou de modification de la séance par l'hôte.
 - **Messagerie instantanée** : Chat entre participants d'une même séance acceptée (WebSockets ou solution gérée).
-- **Notifications** : Alertes push mobiles et emails transactionnels (nouvelle demande de participation, acceptation/refus, annulation de séance).
 - **Modération & Sécurité** : Signalement de profils et blocage mutuel d'utilisateurs (les relations SQL ont été anticipées pour cela).
 - **Avis et réputation** : Évaluation mutuelle entre sportifs après le déroulement d'une séance (`DONE`).
 - **Gestion avancée du compte** : Changement d'email sécurisé et réinitialisation de mot de passe par lien magique / token temporaire par email.
