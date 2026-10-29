@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getMe, updateMe, deleteMe } from "../controllers/user.controller.js";
 import { getMyHostedSessions } from "../controllers/session.controller.js";
+import { getMyParticipations } from "../controllers/participation.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
 /**
@@ -13,5 +14,6 @@ router.get("/me", authenticate, getMe);
 router.patch("/me", authenticate, updateMe);
 router.delete("/me", authenticate, deleteMe);
 router.get("/me/sessions", authenticate, getMyHostedSessions);
+router.get("/me/participations", authenticate, getMyParticipations);
 
 export default router;
