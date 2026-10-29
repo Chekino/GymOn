@@ -2,6 +2,9 @@ import {
   createSession as createSessionInDb,
   findSessionById,
   findSessions,
+  updateSession as updateSessionInDb,
+  cancelSessionWithParticipations,
+  findSessionsByHost,
 } from "../repositories/session.repository.js";
 import { findGymById } from "../repositories/gym.repository.js";
 
@@ -78,4 +81,84 @@ export async function listSessions(filters) {
     ...filters,
     limit,
   });
+}
+
+export async function updateSessionByHost({ sessionId, userId, updateData }) {
+  const session = await findSessionById(sessionId);
+
+  if (!session) {
+    const error = new Error("Session not found");
+    error.statusCode = 404;
+    error.code = "SESSION_NOT_FOUND";
+    throw error;
+  }
+
+  // Controle des droits : seul l'hote peut modifier ou annuler sa seance
+  if (session.hostId !== userId) {
+    const error = new Error("Forbidden: only the host can modify this session");
+    error.statusCode = 403;
+    error.code = "FORBIDDEN_NOT_HOST";
+    throw error;
+  }
+
+  // Une seance terminee ou deja annulee ne peut plus etre modifiee
+  if (session.status === "CANCELLED" || session.status === "DONE") {
+    const error = new Error("Cannot modify a cancelled or completed session");
+    error.statusCode = 400;
+    error.code = "CANNOT_MODIFY_FINISHED_OR_CANCELLED_SESSION";
+    throw error;
+  }
+
+  // Traitement specifique de l'annulation
+  if (updateData.status === "CANCELLED") {
+    return cancelSessionWithParticipations(sessionId);
+  }
+
+  const cleanData = {};
+
+  if (updateData.startAt) {
+    const startDate = new Date(updateData.startAt);
+    if (startDate <= new Date()) {
+      const error = new Error("Session start date must be in the future");
+      error.statusCode = 400;
+      error.code = "START_DATE_MUST_BE_FUTURE";
+      throw error;
+    }
+    cleanData.startAt = startDate;
+  }
+
+  if (updateData.durationMinutes) {
+    cleanData.durationMinutes = updateData.durationMinutes;
+  }
+
+  if (updateData.activityType) {
+    cleanData.activityType = updateData.activityType.trim();
+  }
+
+  if (updateData.level) {
+    cleanData.level = updateData.level;
+  }
+
+  if (updateData.capacity) {
+    // La capacite ne peut pas etre reduite en dessous des participants deja acceptes
+    const acceptedCount = session.participations.length;
+    const requiredTotalCapacity = acceptedCount + 1;
+
+    if (updateData.capacity < requiredTotalCapacity) {
+      const error = new Error(
+        `Cannot reduce capacity to ${updateData.capacity}: ${acceptedCount} participants are already accepted`
+      );
+      error.statusCode = 409;
+      error.code = "CANNOT_REDUCE_CAPACITY_BELOW_ACCEPTED";
+      throw error;
+    }
+
+    cleanData.capacity = updateData.capacity;
+  }
+
+  return updateSessionInDb(sessionId, cleanData);
+}
+
+export async function getUserHostedSessions(userId) {
+  return findSessionsByHost(userId);
 }

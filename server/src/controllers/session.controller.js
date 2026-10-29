@@ -3,6 +3,8 @@ import {
   createSession,
   getSessionById,
   listSessions,
+  updateSessionByHost,
+  getUserHostedSessions,
 } from "../services/session.service.js";
 
 /**
@@ -31,6 +33,22 @@ const listSessionsQuerySchema = z.object({
   status: z.enum(["OPEN", "FULL", "CANCELLED", "DONE"]).optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
+
+const updateSessionSchema = z.object({
+  startAt: z.iso.datetime({ error: "startAt must be a valid ISO 8601 date string" }).optional(),
+  durationMinutes: z
+    .number()
+    .int()
+    .min(15, "Duration must be at least 15 minutes")
+    .max(360, "Duration cannot exceed 6 hours")
+    .optional(),
+  activityType: z.string().trim().min(1).max(100).optional(),
+  level: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
+  capacity: z.union([z.literal(2), z.literal(3)], {
+    error: "Capacity must be strictly 2 or 3 persons (host included)",
+  }),
+  status: z.enum(["OPEN", "CANCELLED"]).optional(),
+}).partial();
 
 /**
  * Couche Controller pour les seances.
@@ -101,6 +119,52 @@ export async function list(req, res, next) {
     }
 
     const sessions = await listSessions(result.data);
+
+    return res.status(200).json({
+      success: true,
+      data: { sessions },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function update(req, res, next) {
+  try {
+    const result = updateSessionSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid session update data",
+          details: result.error.issues.map((issue) => ({
+            field: issue.path.join("."),
+            message: issue.message,
+          })),
+        },
+      });
+    }
+
+    const session = await updateSessionByHost({
+      sessionId: req.params.id,
+      userId: req.user.id,
+      updateData: result.data,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: { session },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getMyHostedSessions(req, res, next) {
+  try {
+    const sessions = await getUserHostedSessions(req.user.id);
 
     return res.status(200).json({
       success: true,

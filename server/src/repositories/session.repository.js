@@ -102,3 +102,69 @@ export async function findSessions({
     take: limit,
   });
 }
+
+export async function updateSession(id, data) {
+  return prisma.session.update({
+    where: { id },
+    data,
+    include: {
+      gym: true,
+      host: {
+        select: hostPublicSelect,
+      },
+    },
+  });
+}
+
+export async function cancelSessionWithParticipations(sessionId) {
+  return prisma.$transaction(async (tx) => {
+    // Annulation atomique des participations en attente ou acceptees
+    await tx.participation.updateMany({
+      where: {
+        sessionId,
+        status: {
+          in: ["PENDING", "ACCEPTED"],
+        },
+      },
+      data: {
+        status: "CANCELLED",
+      },
+    });
+
+    // Annulation de la seance
+    return tx.session.update({
+      where: { id: sessionId },
+      data: {
+        status: "CANCELLED",
+      },
+      include: {
+        gym: true,
+        host: {
+          select: hostPublicSelect,
+        },
+      },
+    });
+  });
+}
+
+export async function findSessionsByHost(hostId) {
+  return prisma.session.findMany({
+    where: { hostId },
+    include: {
+      gym: true,
+      participations: {
+        where: {
+          status: "ACCEPTED",
+        },
+        include: {
+          user: {
+            select: hostPublicSelect,
+          },
+        },
+      },
+    },
+    orderBy: {
+      startAt: "desc",
+    },
+  });
+}
