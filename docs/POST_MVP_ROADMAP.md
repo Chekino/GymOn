@@ -20,13 +20,14 @@ Ce document centralise l'ensemble des tâches, optimisations et fonctionnalités
 
 ## 2. Fonctionnalités applicatives (Hors MVP)
 
-- **Notifications par email (Post-Frontend)** :
-  - *Décision* : Les notifications seront gérées par l'envoi d'emails transactionnels (ex: Nodemailer / Resend / Brevo).
+- **Notifications par email transactionnels (Post-Frontend)** :
+  - *Décision* : Les notifications critiques seront envoyées par email (ex: Nodemailer / Resend / Brevo).
   - *Planning* : À implémenter une fois le frontend React terminé.
-  - *Cas d'usage* :
-    - Email à l'hôte lors d'une nouvelle demande de participation reçue.
-    - Email au demandeur lorsque son statut passe à `ACCEPTED` ou `DECLINED`.
-    - Email aux participants acceptés en cas d'annulation ou de modification de la séance par l'hôte.
+  - *Cas d'usage prioritaires demandés* :
+    - **Email à l'hôte lors d'une nouvelle adhésion** : Dès qu'un sportif postule pour rejoindre sa séance (`status: PENDING`), l'hôte reçoit un email avec le prénom du candidat, son niveau, sa bio et un bouton direct pour accepter ou refuser.
+    - **Email au sportif lors de l'acceptation** : Dès que l'hôte clique sur « Accepter » (`status: ACCEPTED`), le sportif reçoit immédiatement un email de confirmation avec l'adresse exacte de la salle, l'heure du rendez-vous et les coordonnées du binôme.
+    - **Email au sportif en cas de refus** (`status: DECLINED`) pour lui permettre de chercher un autre créneau sans attendre.
+    - **Email à tous les participants en cas d'annulation de séance** (`status: CANCELLED`) par l'hôte.
 - **Messagerie instantanée** : Chat entre participants d'une même séance acceptée (WebSockets ou solution gérée).
 - **Modération & Sécurité** : Signalement de profils et blocage mutuel d'utilisateurs (les relations SQL ont été anticipées pour cela).
 - **Avis et réputation** : Évaluation mutuelle entre sportifs après le déroulement d'une séance (`DONE`).

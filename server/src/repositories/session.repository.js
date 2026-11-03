@@ -153,9 +153,6 @@ export async function findSessionsByHost(hostId) {
     include: {
       gym: true,
       participations: {
-        where: {
-          status: "ACCEPTED",
-        },
         include: {
           user: {
             select: hostPublicSelect,

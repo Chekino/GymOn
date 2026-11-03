@@ -9,45 +9,8 @@ import ExplorePage from "../pages/sessions/ExplorePage.jsx";
 import CreateSessionPage from "../pages/sessions/CreateSessionPage.jsx";
 import SessionDetailPage from "../pages/sessions/SessionDetailPage.jsx";
 import ProfilePage from "../pages/user/ProfilePage.jsx";
-import { Calendar, Users } from "lucide-react";
-
-/**
- * Vue temporaire pour les seances de l'hote en attendant l'Etape 6.
- */
-function MySessionsPlaceholder() {
-  return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 text-center space-y-3 max-w-xl mx-auto shadow-sm">
-      <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-        <Calendar className="w-6 h-6" />
-      </div>
-      <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-        Mes Séances Organisées
-      </h2>
-      <p className="text-xs text-slate-500">
-        Cet espace permettra de gérer vos séances créées et les candidatures reçues.
-      </p>
-    </div>
-  );
-}
-
-/**
- * Vue temporaire pour les participations du sportif en attendant l'Etape 6.
- */
-function MyParticipationsPlaceholder() {
-  return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 text-center space-y-3 max-w-xl mx-auto shadow-sm">
-      <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-        <Users className="w-6 h-6" />
-      </div>
-      <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-        Mes Candidatures
-      </h2>
-      <p className="text-xs text-slate-500">
-        Cet espace permettra de suivre vos demandes de participation et leur statut.
-      </p>
-    </div>
-  );
-}
+import MySessionsPage from "../pages/user/MySessionsPage.jsx";
+import MyParticipationsPage from "../pages/user/MyParticipationsPage.jsx";
 
 /**
  * Table de navigation principale avec gestion des layouts imbriques.
@@ -73,8 +36,8 @@ export default function AppRoutes() {
           <Route path="/" element={<ExplorePage />} />
           <Route path="/sessions/new" element={<CreateSessionPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
-          <Route path="/my-sessions" element={<MySessionsPlaceholder />} />
-          <Route path="/my-participations" element={<MyParticipationsPlaceholder />} />
+          <Route path="/my-sessions" element={<MySessionsPage />} />
+          <Route path="/my-participations" element={<MyParticipationsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>

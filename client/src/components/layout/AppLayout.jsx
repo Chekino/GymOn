@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Dumbbell, Compass, Calendar, Users, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore.js";
+import { getMyHostedSessions } from "../../api/session.api.js";
+import { getMyParticipations } from "../../api/participation.api.js";
 
 const NAV_ITEMS = [
   {
@@ -30,9 +33,65 @@ const NAV_ITEMS = [
 /**
  * Mise en page principale de l'application (AppLayout).
  * Combine une barre superieure sur Desktop et une barre de navigation basse sur Mobile.
+ * Integre des badges de notifications dynamiques pour l'hote (demandes recues) et le participant (seances acceptees).
  */
 export default function AppLayout() {
   const user = useAuthStore((state) => state.user);
+
+  // Requetes en arriere-plan pour les compteurs de notifications
+  const { data: hostedData } = useQuery({
+    queryKey: ["my-hosted-sessions"],
+    queryFn: getMyHostedSessions,
+    enabled: !!user,
+  });
+
+  const { data: participationsData } = useQuery({
+    queryKey: ["my-participations"],
+    queryFn: getMyParticipations,
+    enabled: !!user,
+  });
+
+  // Nombre de demandes PENDING recues sur les seances de l'hote
+  const pendingRequestsCount = useMemo(() => {
+    const sessions = hostedData?.data?.sessions || [];
+    return sessions.reduce((total, session) => {
+      if (session.status === "CANCELLED") return total;
+      const pending = (session.participations || []).filter(
+        (p) => p.status === "PENDING"
+      ).length;
+      return total + pending;
+    }, 0);
+  }, [hostedData]);
+
+  // Nombre de participations ACCEPTED a venir pour le sportif
+  const acceptedParticipationsCount = useMemo(() => {
+    const participations = participationsData?.data?.participations || [];
+    const now = new Date();
+    return participations.filter((p) => {
+      return (
+        p.status === "ACCEPTED" &&
+        p.session?.status !== "CANCELLED" &&
+        new Date(p.session?.startAt) > now
+      );
+    }).length;
+  }, [participationsData]);
+
+  // Helper de badge selon l'onglet
+  const getBadge = (to) => {
+    if (to === "/my-sessions" && pendingRequestsCount > 0) {
+      return {
+        count: pendingRequestsCount,
+        color: "bg-blue-600 text-white",
+      };
+    }
+    if (to === "/my-participations" && acceptedParticipationsCount > 0) {
+      return {
+        count: acceptedParticipationsCount,
+        color: "bg-emerald-600 text-white",
+      };
+    }
+    return null;
+  };
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 flex flex-col pb-20 md:pb-6 text-slate-900 font-sans">
@@ -53,6 +112,8 @@ export default function AppLayout() {
           <nav className="hidden md:flex items-center gap-1.5">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
+              const badge = getBadge(item.to);
+
               return (
                 <NavLink
                   key={item.to}
@@ -68,6 +129,13 @@ export default function AppLayout() {
                 >
                   <Icon className="w-4 h-4" />
                   <span>{item.label}</span>
+                  {badge && (
+                    <span
+                      className={`text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none shadow-xs ${badge.color}`}
+                    >
+                      {badge.count}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
@@ -100,20 +168,31 @@ export default function AppLayout() {
         <div className="grid grid-cols-4 h-16">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
+            const badge = getBadge(item.to);
+
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `flex flex-col items-center justify-center gap-1 transition-transform duration-100 active:scale-[0.92] select-none ${
+                  `flex flex-col items-center justify-center gap-1 transition-transform duration-100 active:scale-[0.92] select-none relative ${
                     isActive
                       ? "text-blue-600 font-bold"
                       : "text-slate-400 hover:text-slate-600 font-medium"
                   }`
                 }
               >
-                <Icon className="w-5 h-5" />
+                <div className="relative">
+                  <Icon className="w-5 h-5" />
+                  {badge && (
+                    <span
+                      className={`absolute -top-1.5 -right-2.5 min-w-[15px] h-3.5 px-1 rounded-full text-[9px] font-black flex items-center justify-center leading-none shadow-xs ${badge.color}`}
+                    >
+                      {badge.count}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] tracking-tight">{item.label}</span>
               </NavLink>
             );

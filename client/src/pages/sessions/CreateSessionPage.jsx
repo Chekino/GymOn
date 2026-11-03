@@ -264,7 +264,7 @@ export default function CreateSessionPage() {
             >
               {gyms.map((g) => (
                 <option key={g.id} value={g.id}>
-                  {g.name} — {g.address}, {g.city}
+                  {g.name} ( {g.address}, {g.city})
                 </option>
               ))}
             </select>
