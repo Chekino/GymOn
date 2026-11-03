@@ -6,6 +6,7 @@ import AppLayout from "../components/layout/AppLayout.jsx";
 import LoginPage from "../pages/auth/LoginPage.jsx";
 import SignupPage from "../pages/auth/SignupPage.jsx";
 import ExplorePage from "../pages/sessions/ExplorePage.jsx";
+import CreateSessionPage from "../pages/sessions/CreateSessionPage.jsx";
 import SessionDetailPage from "../pages/sessions/SessionDetailPage.jsx";
 import ProfilePage from "../pages/user/ProfilePage.jsx";
 import { Calendar, Users } from "lucide-react";
@@ -70,6 +71,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<ExplorePage />} />
+          <Route path="/sessions/new" element={<CreateSessionPage />} />
           <Route path="/sessions/:id" element={<SessionDetailPage />} />
           <Route path="/my-sessions" element={<MySessionsPlaceholder />} />
           <Route path="/my-participations" element={<MyParticipationsPlaceholder />} />
