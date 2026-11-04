@@ -4,7 +4,10 @@ import axios from "axios";
  * Client HTTP centralise base sur Axios.
  * Configure avec l'URL de base de l'API et intercepteurs d'authentification.
  */
-const baseURL = import.meta.env.API_BASE_URL || "http://localhost:3000/api/v1";
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.API_BASE_URL ||
+  "http://localhost:3000/api/v1";
 
 export const apiClient = axios.create({
   baseURL,

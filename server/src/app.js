@@ -13,12 +13,17 @@ const app = express();
 app.use(helmet());
 
 // Autorise les requetes cross-origin du client web
+const defaultOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const allowedOrigins = process.env.CLIENT_ORIGIN
+  ? [
+      ...process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim().replace(/\/$/, "")),
+      ...defaultOrigins,
+    ]
+  : defaultOrigins;
+
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN || [
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
