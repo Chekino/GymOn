@@ -4,7 +4,7 @@ import axios from "axios";
  * Client HTTP centralise base sur Axios.
  * Configure avec l'URL de base de l'API et intercepteurs d'authentification.
  */
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1";
+const baseURL = import.meta.env.API_BASE_URL || "http://localhost:3000/api/v1";
 
 export const apiClient = axios.create({
   baseURL,
@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Intercepteur pour gerer les reponses d'erreur globales (notamment token expire ou revoque 401)
@@ -36,12 +36,15 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("gymon_user");
 
       // Redirection vers la page de connexion si on n'y est pas deja
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.startsWith("/login")
+      ) {
         window.location.href = "/login";
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;
