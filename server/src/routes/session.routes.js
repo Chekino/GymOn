@@ -12,8 +12,11 @@ import { authenticate } from "../middlewares/auth.middleware.js";
  */
 const router = Router();
 
-router.get("/", authenticate, list);
-router.get("/:id", authenticate, getById);
+// Routes de consultation publiques (catalogue ouvert)
+router.get("/", list);
+router.get("/:id", getById);
+
+// Routes securisees necessitant une authentification JWT
 router.post("/", authenticate, create);
 router.patch("/:id", authenticate, update);
 

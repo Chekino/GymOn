@@ -33,15 +33,60 @@ export default function AppRoutes() {
         element={isAuthenticated ? <Navigate to="/" replace /> : <SignupPage />}
       />
 
-      {/* Routes membres protegees enveloppees dans le layout partage */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<PageTransition><ExplorePage /></PageTransition>} />
-          <Route path="/sessions/new" element={<PageTransition><CreateSessionPage /></PageTransition>} />
-          <Route path="/sessions/:id" element={<PageTransition><SessionDetailPage /></PageTransition>} />
-          <Route path="/my-sessions" element={<PageTransition><MySessionsPage /></PageTransition>} />
-          <Route path="/my-participations" element={<PageTransition><MyParticipationsPage /></PageTransition>} />
-          <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+      {/* Layout principal contenant les pages publiques et protegees */}
+      <Route element={<AppLayout />}>
+        {/* Pages publiques accessibles a tous les visiteurs */}
+        <Route
+          path="/"
+          element={
+            <PageTransition>
+              <ExplorePage />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/sessions/:id"
+          element={
+            <PageTransition>
+              <SessionDetailPage />
+            </PageTransition>
+          }
+        />
+
+        {/* Pages protegees necessitant d'etre connecte */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/sessions/new"
+            element={
+              <PageTransition>
+                <CreateSessionPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/my-sessions"
+            element={
+              <PageTransition>
+                <MySessionsPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/my-participations"
+            element={
+              <PageTransition>
+                <MyParticipationsPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PageTransition>
+                <ProfilePage />
+              </PageTransition>
+            }
+          />
         </Route>
       </Route>
 

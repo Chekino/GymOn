@@ -1,12 +1,20 @@
 import React, { useMemo } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { Dumbbell, Compass, Calendar, Users, User } from "lucide-react";
+import {
+  Dumbbell,
+  Compass,
+  Calendar,
+  Users,
+  User,
+  LogIn,
+  UserPlus,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../../store/authStore.js";
 import { getMyHostedSessions } from "../../api/session.api.js";
 import { getMyParticipations } from "../../api/participation.api.js";
 
-const NAV_ITEMS = [
+const AUTH_NAV_ITEMS = [
   {
     to: "/",
     label: "Explorer",
@@ -30,12 +38,32 @@ const NAV_ITEMS = [
   },
 ];
 
+const GUEST_MOBILE_NAV_ITEMS = [
+  {
+    to: "/",
+    label: "Explorer",
+    icon: Compass,
+    end: true,
+  },
+  {
+    to: "/login",
+    label: "Connexion",
+    icon: LogIn,
+  },
+  {
+    to: "/signup",
+    label: "Inscription",
+    icon: UserPlus,
+  },
+];
+
 /**
  * Mise en page principale de l'application (AppLayout).
  * Combine une barre superieure sur Desktop et une barre de navigation basse sur Mobile.
- * Integre des badges de notifications dynamiques pour l'hote (demandes recues) et le participant (seances acceptees).
+ * S'adapte dynamiquement selon que l'utilisateur est authentifie ou simple visiteur.
  */
 export default function AppLayout() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
   // Requetes en arriere-plan pour les compteurs de notifications
@@ -110,7 +138,7 @@ export default function AppLayout() {
 
           {/* Liens de navigation Desktop */}
           <nav className="hidden md:flex items-center gap-1.5">
-            {NAV_ITEMS.map((item) => {
+            {(isAuthenticated ? AUTH_NAV_ITEMS : [{ to: "/", label: "Explorer", icon: Compass, end: true }]).map((item) => {
               const Icon = item.icon;
               const badge = getBadge(item.to);
 
@@ -141,20 +169,37 @@ export default function AppLayout() {
             })}
           </nav>
 
-          {/* Raccourci Profil Desktop */}
-          <div className="hidden md:flex items-center">
-            <Link
-              to="/profile"
-              className="flex items-center gap-2.5 p-1.5 pl-3 rounded-full bg-slate-100/80 hover:bg-slate-200/60 border border-slate-200/60 transition-all select-none active:scale-[0.98]"
-            >
-              <span className="text-xs font-semibold text-slate-700">
-                {user?.firstName || "Athlète"}
-              </span>
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                {(user?.firstName || "U")[0].toUpperCase()}
-              </div>
-            </Link>
-          </div>
+          {/* Raccourci Profil ou Boutons de connexion Desktop */}
+          {isAuthenticated ? (
+            <div className="hidden md:flex items-center">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2.5 p-1.5 pl-3 rounded-full bg-slate-100/80 hover:bg-slate-200/60 border border-slate-200/60 transition-all select-none active:scale-[0.98]"
+              >
+                <span className="text-xs font-semibold text-slate-700">
+                  {user?.firstName || "Athlète"}
+                </span>
+                <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                  {(user?.firstName || "U")[0].toUpperCase()}
+                </div>
+              </Link>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                to="/login"
+                className="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 transition-all select-none"
+              >
+                Se connecter
+              </Link>
+              <Link
+                to="/signup"
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs select-none active:scale-[0.98] transition-all"
+              >
+                Créer un compte
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
@@ -165,8 +210,8 @@ export default function AppLayout() {
 
       {/* Barre de navigation basse (Mobile - Bottom Navigation Bar) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 pb-[env(safe-area-inset-bottom)] shadow-lg">
-        <div className="grid grid-cols-4 h-16">
-          {NAV_ITEMS.map((item) => {
+        <div className={`grid ${isAuthenticated ? "grid-cols-4" : "grid-cols-3"} h-16`}>
+          {(isAuthenticated ? AUTH_NAV_ITEMS : GUEST_MOBILE_NAV_ITEMS).map((item) => {
             const Icon = item.icon;
             const badge = getBadge(item.to);
 

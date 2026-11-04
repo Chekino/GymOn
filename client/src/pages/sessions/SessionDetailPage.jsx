@@ -80,6 +80,7 @@ export default function SessionDetailPage() {
   const { data: myParticipationsData } = useQuery({
     queryKey: ["my-participations"],
     queryFn: getMyParticipations,
+    enabled: !!currentUser,
   });
 
   const session = sessionData?.data?.session;
@@ -386,6 +387,15 @@ export default function SessionDetailPage() {
             className="w-full py-4 px-6 rounded-2xl font-semibold bg-slate-100 text-slate-400 cursor-not-allowed select-none text-sm border border-slate-200/60"
           >
             Séance complète
+          </button>
+        ) : !currentUser ? (
+          <button
+            type="button"
+            onClick={() => navigate("/login", { state: { from: `/sessions/${id}` } })}
+            className="w-full py-4 px-6 rounded-2xl font-semibold bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white transition-all duration-120 flex items-center justify-center gap-2 select-none shadow-sm shadow-blue-500/20 text-sm"
+          >
+            <span>Se connecter pour rejoindre cette séance</span>
+            <Sparkles className="w-4 h-4" />
           </button>
         ) : (
           <button

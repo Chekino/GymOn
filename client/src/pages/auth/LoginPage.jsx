@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Dumbbell, ArrowRight, Loader2, Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { login } from "../../api/auth.api.js";
@@ -11,6 +11,7 @@ import { useAuthStore } from "../../store/authStore.js";
  */
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [email, setEmail] = useState("");
@@ -32,7 +33,8 @@ export default function LoginPage() {
         description: `Ravi de vous revoir, ${response.data.user.firstName} !`,
       });
 
-      navigate("/", { replace: true });
+      const redirectPath = location.state?.from || "/";
+      navigate(redirectPath, { replace: true });
     } catch (error) {
       const message =
         error.response?.data?.error?.message ||
